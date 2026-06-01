@@ -1,0 +1,82 @@
+.syntax unified
+.cpu cortex-m3
+.thumb
+
+.global _estack
+.global Reset_Handler
+.global Default_Handler
+
+.extern main
+
+.extern xPortPendSVHandler
+.extern xPortSysTickHandler
+.extern vPortSVCHandler
+
+/*
+ * FreeRTOS handler trampolines
+ */
+
+.global PendSV_Handler
+.global SysTick_Handler
+.global SVC_Handler
+
+PendSV_Handler:
+    b xPortPendSVHandler
+
+SysTick_Handler:
+    b xPortSysTickHandler
+
+SVC_Handler:
+    b vPortSVCHandler
+
+/*
+ * Vector table
+ */
+
+
+.section .isr_vector, "a", %progbits
+
+.word _estack
+.word Reset_Handler
+.word Default_Handler     /* NMI */
+.word HardFault_Handler
+.word Default_Handler     /* MemManage */
+.word Default_Handler     /* BusFault */
+.word Default_Handler     /* UsageFault */
+.word 0
+.word 0
+.word 0
+.word 0
+.word SVC_Handler
+.word Default_Handler     /* DebugMon */
+.word 0
+.word PendSV_Handler
+.word SysTick_Handler
+/*
+ * Reset handler
+ */
+
+.section .text.Reset_Handler
+.type Reset_Handler, %function
+
+Reset_Handler:
+    bl main
+
+loop_forever:
+    b loop_forever
+
+/*
+ * Default interrupt handler
+ */
+
+.section .text.Default_Handler
+.type Default_Handler, %function
+
+Default_Handler:
+default_loop:
+    b default_loop
+
+.global HardFault_Handler
+
+HardFault_Handler:
+    b .
